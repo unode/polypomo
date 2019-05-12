@@ -9,6 +9,7 @@ import operator
 import time
 import select
 from contextlib import contextmanager
+from subprocess import call, DEVNULL
 
 
 SOCKDIR = os.environ.get("XDG_RUNTIME_DIR", "/var/tmp")
@@ -20,6 +21,7 @@ BREAK = u"\U0001F3D6"
 class Timer:
     def __init__(self, remtime):
         self.time = remtime
+        self.notified = False
         self.tick()
 
     def __str__(self):
@@ -66,6 +68,10 @@ class Timer:
 
     def change(self, op, seconds):
         self.time = op(self.time, seconds)
+        if not self.notified and self.time < 0:
+            self.notified = True
+            call(["notify-send", "-t", "0", "-u", "critical", "Pomodoro",
+                  "Timer reached zero"], stdout=DEVNULL)
 
 
 class Status:
