@@ -66,12 +66,14 @@ class Timer:
         delta = now - self.previous
         self.time -= delta
 
-    def change(self, op, seconds):
-        self.time = op(self.time, seconds)
+        # Send a notification when timer reaches 0
         if not self.notified and self.time < 0:
             self.notified = True
             call(["notify-send", "-t", "0", "-u", "critical", "Pomodoro",
                   "Timer reached zero"], stdout=DEVNULL)
+
+    def change(self, op, seconds):
+        self.time = op(self.time, seconds)
 
 
 class Status:
