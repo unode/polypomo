@@ -22,3 +22,8 @@ click-middle = /path/to/polypomo lock
 scroll-up = /path/to/polypomo time +1
 scroll-down = /path/to/polypomo time -1
 ```
+
+## Screenshots
+
+![pomodoro timer](https://raw.githubusercontent.com/unode/polypomo/master/imgs/tomato-timer.png)  
+![break timer](https://raw.githubusercontent.com/unode/polypomo/master/imgs/break-timer.png)
