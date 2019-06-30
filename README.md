@@ -19,8 +19,8 @@ label = %output%
 click-left = /path/to/polypomo toggle
 click-right = /path/to/polypomo end
 click-middle = /path/to/polypomo lock
-scroll-up = /path/to/polypomo time +1
-scroll-down = /path/to/polypomo time -1
+scroll-up = /path/to/polypomo time +60
+scroll-down = /path/to/polypomo time -60
 ```
 
 In order to prevent accidental changes to the timer, polypomo starts in `locked` mode.  

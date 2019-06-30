@@ -103,11 +103,11 @@ class Status:
         # and not since it was initialized
         self.timer.tick()
 
-    def change(self, op, minutes):
+    def change(self, op, seconds):
         if self.locked:
             return
 
-        seconds = int(minutes) * 60
+        seconds = int(seconds)
         op = operator.add if op == "add" else operator.sub
         self.timer.change(op, seconds)
 
@@ -192,8 +192,8 @@ def check_actions(sock, status):
     elif action == "lock":
         status.toggle_lock()
     elif action.startswith("time"):
-        _, op, minutes = action.split(" ")
-        status.change(op, minutes)
+        _, op, seconds = action.split(" ")
+        status.change(op, seconds)
 
 
 def action_display(args):
@@ -288,7 +288,7 @@ def parse_args():
                           help="add/remove time to current timer")
     time.add_argument("delta",
                       action=ValidateTime,
-                      help="Time to add/remove to current timer (in minutes)")
+                      help="Time to add/remove to current timer (in seconds)")
     time.set_defaults(func=action_time)
 
     return parser.parse_args()
