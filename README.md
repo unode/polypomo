@@ -23,6 +23,19 @@ scroll-up = /path/to/polypomo time +1
 scroll-down = /path/to/polypomo time -1
 ```
 
+In order to prevent accidental changes to the timer, polypomo starts in `locked` mode.  
+Middle click the widget or run `polypomo lock` to toggle locked state.  
+You can then scroll-up/down to change time.
+
+If you wish to permanently change the default times start polypomo with `--worktime seconds` and `--breaktime seconds`.
+
+
+### About pomodoro technique
+
+While polypomo implements the `active -> break -> active` pattern it doesn't enforce the longer break after a given number of active sprees.  
+This is left at the discretion of the user.
+
+
 ## Screenshots
 
 ![pomodoro timer](https://raw.githubusercontent.com/unode/polypomo/master/imgs/tomato-timer.png)  
