@@ -259,11 +259,11 @@ def parse_args():
     parser.add_argument("--worktime",
                         type=int,
                         default=25 * 60,
-                        help="Default work timer time in minutes")
+                        help="Default work timer time in seconds")
     parser.add_argument("--breaktime",
                         type=int,
                         default=3 * 60,
-                        help="Default break timer time in minutes")
+                        help="Default break timer time in seconds")
     parser.set_defaults(func=action_display)
 
     sub = parser.add_subparsers()
