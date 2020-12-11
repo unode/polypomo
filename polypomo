@@ -18,6 +18,10 @@ TOMATO = u"\U0001F345"
 BREAK = u"\U0001F3D6"
 
 
+class Exit(Exception):
+    pass
+
+
 class Timer:
     def __init__(self, remtime):
         self.time = remtime
@@ -128,16 +132,11 @@ class Status:
 
 @contextmanager
 def setup_listener():
+    # If there's an existing socket, tell the other to exit and replace it
+    action_exit(None)
+
     s = socket.socket(socket.AF_UNIX,
                       socket.SOCK_DGRAM)
-
-    # If there's an existing socket, replace it
-    # this isn't nice to active polypomo instances but ensures we can start
-    try:
-        os.remove(SOCKFILE)
-    except OSError:
-        pass
-
     s.bind(SOCKFILE)
 
     try:
@@ -164,6 +163,16 @@ def setup_client():
         s.close()
 
     # tm = s.recv(1024)  # msg can only be 1024 bytes long
+
+
+def wait_for_socket_cleanup(tries=20, wait=0.5):
+    for i in range(tries):
+        if not os.path.isfile(SOCKFILE):
+            return True
+        else:
+            time.sleep(wait)
+
+    return False
 
 
 def check_actions(sock, status):
@@ -198,6 +207,8 @@ def check_actions(sock, status):
     elif action.startswith("time"):
         _, op, seconds = action.split(" ")
         status.change(op, seconds)
+    elif action == "exit":
+        raise Exit()
 
 
 def action_display(args):
@@ -210,7 +221,11 @@ def action_display(args):
         while True:
             status.show()
             status.update()
-            check_actions(sock, status)
+            try:
+                check_actions(sock, status)
+            except Exit:
+                print("Received exit request so exiting...")
+                break
 
 
 def action_toggle(args):
@@ -239,6 +254,24 @@ def action_time(args):
     with setup_client() as s:
         msg = "time " + " ".join(args.delta)
         s.send(msg.encode("utf8"))
+
+
+def action_exit(args):
+    # TODO logging = print("Running exit", args)
+    try:
+        with setup_client() as s:
+            msg = "exit"
+            s.send(msg.encode("utf8"))
+    except FileNotFoundError:
+        print("No instance is listening")
+    else:
+        if not wait_for_socket_cleanup():
+            print("Socker was not removed, assuming it's stale")
+
+            try:
+                os.remove(SOCKFILE)
+            except OSError:
+                pass
 
 
 class ValidateTime(argparse.Action):
@@ -286,6 +319,11 @@ def parse_args():
     lock = sub.add_parser("lock",
                           help="lock time actions - prevent changing time")
     lock.set_defaults(func=action_lock)
+
+    # lock timer changes
+    exit = sub.add_parser("exit",
+                          help="exit any listening polypomo instances gracefully")
+    exit.set_defaults(func=action_exit)
 
     # change timer
     time = sub.add_parser("time",
