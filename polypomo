@@ -135,6 +135,12 @@ def setup_listener():
     # If there's an existing socket, tell the other to exit and replace it
     action_exit(None)
 
+    # If there is a socket on disk after sending an exit request, delete it
+    try:
+        os.remove(SOCKFILE)
+    except FileNotFoundError:
+        pass
+
     s = socket.socket(socket.AF_UNIX,
                       socket.SOCK_DGRAM)
     s.bind(SOCKFILE)
@@ -143,10 +149,12 @@ def setup_listener():
         yield s
     finally:
         s.close()
-        try:
-            os.remove(SOCKFILE)
-        except OSError:
-            pass
+        # Don't try to delete the socket since at this point it could
+        # be owned by a different process
+        # try:
+        #     os.remove(SOCKFILE)
+        # except FileNotFoundError:
+        #     pass
 
 
 @contextmanager
@@ -224,7 +232,7 @@ def action_display(args):
             try:
                 check_actions(sock, status)
             except Exit:
-                print("Received exit request so exiting...")
+                print("Received exit request...")
                 break
 
 
@@ -266,12 +274,7 @@ def action_exit(args):
         print("No instance is listening")
     else:
         if not wait_for_socket_cleanup():
-            print("Socker was not removed, assuming it's stale")
-
-            try:
-                os.remove(SOCKFILE)
-            except OSError:
-                pass
+            print("Socket was not removed, assuming it's stale")
 
 
 class ValidateTime(argparse.Action):
