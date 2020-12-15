@@ -270,8 +270,8 @@ def action_exit(args):
         with setup_client() as s:
             msg = "exit"
             s.send(msg.encode("utf8"))
-    except FileNotFoundError:
-        print("No instance is listening")
+    except (FileNotFoundError, ConnectionRefusedError) as e:
+        print("No instance is listening, error:", e)
     else:
         if not wait_for_socket_cleanup():
             print("Socket was not removed, assuming it's stale")
