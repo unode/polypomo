@@ -21,6 +21,9 @@ click-right = /path/to/polypomo end
 click-middle = /path/to/polypomo lock
 scroll-up = /path/to/polypomo time +60
 scroll-down = /path/to/polypomo time -60
+
+font-0 = fixed:pixelsize=10;1
+font-1 = Noto Emoji:scale=15:antialias=false;0
 ```
 
 In order to prevent accidental changes to the timer, polypomo starts in `locked` mode.  
@@ -28,6 +31,12 @@ Middle click the widget or run `polypomo lock` to toggle locked state.
 You can then scroll-up/down to change time.
 
 If you wish to permanently change the default times start polypomo with `--worktime seconds` and `--breaktime seconds`.
+
+### Fonts
+
+In order to display the icons as shown in the screenshots below,
+you need to configure a font that includes the Unicode glyphs U+1F345 (🍅) and U+1F3D6 (🏖).
+The example above uses the font [Noto Emoji](https://www.google.com/get/noto/help/emoji/).
 
 ### About pomodoro technique
 
