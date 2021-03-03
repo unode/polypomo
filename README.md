@@ -1,4 +1,4 @@
-# polypomo - a polybar pomodoro widget
+# polypomo - a [polybar](https://polybar.github.io/) [pomodoro](https://en.wikipedia.org/wiki/Pomodoro_Technique) widget
 
 ## Usage
 
@@ -32,6 +32,13 @@ You can then scroll-up/down to change time.
 
 If you wish to permanently change the default times start polypomo with `--worktime seconds` and `--breaktime seconds`.
 
+There isn't much else in terms of configuration but if the syntax above is confusing please refer to the [polybar configuration wiki page](https://github.com/polybar/polybar/wiki/Configuration).
+
+### Limitations
+
+polypomo is designed to work as a single widget in your polybar.  
+Running multiple polypomo instances is not a supported configuration [but some workarounds are possible](https://github.com/unode/polypomo/issues/3#issuecomment-781288256).
+
 ### Fonts
 
 In order to display the icons as shown in the screenshots below,
@@ -43,13 +50,15 @@ The example above uses the font [Noto Emoji](https://www.google.com/get/noto/hel
 While polypomo implements the `active -> break -> active` pattern it doesn't enforce the longer break after a given number of active sprees.  
 This is left at the discretion of the user.
 
-
 ## Optional dependencies
 
 polypomo makes use of `notify-send` to send a notification when the timer reaches zero.
-
 
 ## Screenshots
 
 ![pomodoro timer](https://raw.githubusercontent.com/unode/polypomo/master/imgs/tomato-timer.png)  
 ![break timer](https://raw.githubusercontent.com/unode/polypomo/master/imgs/break-timer.png)
+
+## License
+
+polypomo is licensed under the [MIT](https://github.com/unode/polypomo/blob/master/LICENSE) license
