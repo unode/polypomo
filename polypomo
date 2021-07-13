@@ -16,6 +16,7 @@ SOCKDIR = os.environ.get("XDG_RUNTIME_DIR", "/var/tmp")
 SOCKFILE = os.path.join(SOCKDIR, "polypomo.sock")
 TOMATO = u"\U0001F345"
 BREAK = u"\U0001F3D6"
+PAUSE = u"⏸️"
 
 
 class Exit(Exception):
@@ -95,6 +96,8 @@ class Status:
 
     def show(self):
         status = TOMATO if self.status == "work" else BREAK
+        if not self.active:
+            status = PAUSE
         sys.stdout.write("{} {}\n".format(status, self.timer))
         sys.stdout.flush()
 
