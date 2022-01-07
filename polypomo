@@ -136,7 +136,7 @@ class Status:
 @contextmanager
 def setup_listener():
     # If there's an existing socket, tell the other to exit and replace it
-    action_exit(None)
+    action_exit(None, warn=False)
 
     # If there is a socket on disk after sending an exit request, delete it
     try:
@@ -267,14 +267,15 @@ def action_time(args):
         s.send(msg.encode("utf8"))
 
 
-def action_exit(args):
+def action_exit(args, warn=True):
     # TODO logging = print("Running exit", args)
     try:
         with setup_client() as s:
             msg = "exit"
             s.send(msg.encode("utf8"))
     except (FileNotFoundError, ConnectionRefusedError) as e:
-        print("No instance is listening, error:", e)
+        if warn:
+            print("No instance of polypomo listening, error:", e)
     else:
         if not wait_for_socket_cleanup():
             print("Socket was not removed, assuming it's stale")
