@@ -143,17 +143,20 @@ class Status:
 def setup_conn():
     global DATABASE_PATH
     # check if the database exist
-    conn = sqlite3.connect('polypomoDB.db')
-    cur = conn.cursor()
     if (os.path.exists(DATABASE_PATH)):
+        print('database already exist')
+        conn = sqlite3.connect('polypomoDB.db')
+        cur = conn.cursor()
         try:
             yield cur
         finally:
             conn.commit()
             conn.close()
     else:
-        print(f'initialize the database')
-        cur.execute('''CREATE TABLE stocks
+        print('initiate database')
+        conn = sqlite3.connect('polypomoDB.db')
+        cur = conn.cursor()
+        cur.execute('''CREATE TABLE data
                (days text, worked_time text)''')
         conn.commit()
         try:
@@ -165,12 +168,25 @@ def setup_conn():
 def db_save(time, status):
     global START_TIME
     if (status.status == 'work'):
-        if not status.active:
+        if  not status.active and START_TIME != 0:
             with setup_conn() as conn:
                 today = date.today()
                 worked_time = (time - START_TIME) / 60 / 60
-                conn.execute(f"INSERT INTO stocks VALUES ('{today}', '{worked_time}')")
+                todaysrow = conn.execute(f'SELECT * FROM data WHERE days = "{today}"').fetchall()
+                
+                # check if the row for today does not exist
+                if (todaysrow):
+                    print('row already exist. updating....')
+                    worked_time += float(todaysrow[0][1])
+                    conn.execute(f"""UPDATE data
+                            SET worked_time = '{"%.3f" % worked_time}'
+                            WHERE days = '{today}'
+                            """)
+                else:
+                    print('no row for today, creating one....')
+                    conn.execute(f"INSERT INTO data VALUES ('{today}', '{'%.3f' % worked_time}')")
         else:
+            print('initiating START_TIME')
             START_TIME = time
 
 
@@ -251,8 +267,9 @@ def check_actions(sock, status):
 
     action = data.decode("utf8")
     if action == "toggle":
-        db_save(time.time(), status)
         status.toggle()
+        if DATABASE_SUPPORT:
+            db_save(time.time(), status)
     elif action == "end":
         status.next_timer()
     elif action == "lock":
