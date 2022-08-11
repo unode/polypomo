@@ -32,6 +32,8 @@ You can then scroll-up/down to change time.
 
 If you wish to permanently change the default times start polypomo with `--worktime seconds` and `--breaktime seconds`.
 
+if you want your work sessions to be logged, start polypomo with `--saveto` followed by the path to your database, polypomo will then create a table called `sessions` and store the date, start and stop time of each work session.
+
 There isn't much else in terms of configuration but if the syntax above is confusing please refer to the [polybar configuration wiki page](https://github.com/polybar/polybar/wiki/Configuration).
 
 ### Limitations

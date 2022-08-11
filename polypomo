@@ -138,18 +138,17 @@ class Status:
             self.timer = Timer(self.worktime)
 
     def save(self):
-        if self.status == "work":
-            with setup_conn(self.saveto) as conn:
-                if self.active:
-                    conn.execute("INSERT INTO sessions VALUES (date('now'), time('now'), NULL)")
-                else:
-                    conn.execute("""UPDATE sessions
-                                     SET stop = time('now')
-                                     WHERE start IN (
-                                         SELECT start FROM sessions
-                                         ORDER BY start DESC
-                                         LIMIT 1)
-                                    """)
+        with setup_conn(self.saveto) as conn:
+            if self.active:
+                conn.execute("INSERT INTO sessions VALUES (date('now'), time('now'), NULL)")
+            else:
+                conn.execute("""UPDATE sessions
+                                 SET stop = time('now')
+                                 WHERE start IN (
+                                     SELECT start FROM sessions
+                                     ORDER BY start DESC
+                                     LIMIT 1)
+                                """)
 
 
 @contextmanager
