@@ -106,7 +106,7 @@ class Status:
 
     def toggle(self):
         self.active = not self.active
-        if self.saveto:
+        if self.saveto and self.status == "work":
             self.save()
 
     def toggle_lock(self):
