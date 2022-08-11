@@ -15,7 +15,7 @@ import pathlib
 
 
 SOCKDIR = os.environ.get("XDG_RUNTIME_DIR", "/var/tmp")
-SOCKFILE = os.path.join(SOCKDIR, "polypomoTest.sock")
+SOCKFILE = os.path.join(SOCKDIR, "polypomo.sock")
 TOMATO = u"\U0001F345"  # Recommended font: Noto Emoji
 BREAK = u"\U0001F3D6"  # Recommended font: Noto Emoji
 PAUSE = u"\U000023F8"  # Recommended font: Siji
