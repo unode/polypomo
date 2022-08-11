@@ -15,12 +15,11 @@ from datetime import date
 
 
 SOCKDIR = os.environ.get("XDG_RUNTIME_DIR", "/var/tmp")
-# TODO change it to polypomo.sock
-SOCKFILE = os.path.join(SOCKDIR, "polypomoTest.sock")
+SOCKFILE = os.path.join(SOCKDIR, "polypomo.sock")
 TOMATO = u"\U0001F345"  # Recommended font: Noto Emoji
 BREAK = u"\U0001F3D6"  # Recommended font: Noto Emoji
 PAUSE = u"\U000023F8"  # Recommended font: Siji
-DATABASE_SUPPORT = True 
+DATABASE_SUPPORT = False  # change to Ture to save workedtime to database
 DATABASE_PATH = os.getcwd() + '/polypomoDB.db'
 START_TIME = 0
 
