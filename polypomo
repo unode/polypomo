@@ -11,7 +11,7 @@ import select
 from contextlib import contextmanager
 from subprocess import call, DEVNULL
 import sqlite3
-from datetime import date
+import pathlib
 
 
 SOCKDIR = os.environ.get("XDG_RUNTIME_DIR", "/var/tmp")
@@ -19,9 +19,6 @@ SOCKFILE = os.path.join(SOCKDIR, "polypomo.sock")
 TOMATO = u"\U0001F345"  # Recommended font: Noto Emoji
 BREAK = u"\U0001F3D6"  # Recommended font: Noto Emoji
 PAUSE = u"\U000023F8"  # Recommended font: Siji
-DATABASE_SUPPORT = False  # change to Ture to save workedtime to database
-DATABASE_PATH = os.getcwd() + '/polypomoDB.db'
-START_TIME = 0
 
 
 class Exit(Exception):
@@ -91,13 +88,14 @@ class Timer:
 
 
 class Status:
-    def __init__(self, worktime, breaktime):
+    def __init__(self, worktime, breaktime, saveto):
         self.worktime = worktime
         self.breaktime = breaktime
         self.status = "work"  # or "break"
         self.timer = Timer(self.worktime)
         self.active = False
         self.locked = True
+        self.saveto = saveto
 
     def show(self):
         status = TOMATO if self.status == "work" else BREAK
@@ -108,6 +106,8 @@ class Status:
 
     def toggle(self):
         self.active = not self.active
+        if self.saveto:
+            db_save(self.status, self.saveto, self.active)
 
     def toggle_lock(self):
         self.locked = not self.locked
@@ -139,55 +139,31 @@ class Status:
 
 
 @contextmanager
-def setup_conn():
-    global DATABASE_PATH
+def setup_conn(path):
     # check if the database exist
-    if (os.path.exists(DATABASE_PATH)):
-        print('database already exist')
-        conn = sqlite3.connect('polypomoDB.db')
-        cur = conn.cursor()
-        try:
-            yield cur
-        finally:
-            conn.commit()
-            conn.close()
-    else:
-        print('initiate database')
-        conn = sqlite3.connect('polypomoDB.db')
-        cur = conn.cursor()
-        cur.execute('''CREATE TABLE data
-               (days text, worked_time text)''')
+    conn = sqlite3.connect(path)
+    cur = conn.cursor()
+    cur.execute("""CREATE TABLE IF NOT EXISTS sessions (
+                        date text,
+                        start text,
+                        stop text
+        )""")
+    try:
+        yield cur
+    finally:
         conn.commit()
-        try:
-            yield cur
-        finally:
-            conn.commit()
-            conn.close()
+        conn.close()
 
-def db_save(time, status):
-    global START_TIME
-    if (status.status == 'work'):
-        if  not status.active and START_TIME != 0:
-            with setup_conn() as conn:
-                today = date.today()
-                worked_time = (time - START_TIME) / 60 / 60
-                todaysrow = conn.execute(f'SELECT * FROM data WHERE days = "{today}"').fetchall()
-                
-                # check if the row for today does not exist
-                if (todaysrow):
-                    print('row already exist. updating....')
-                    worked_time += float(todaysrow[0][1])
-                    conn.execute(f"""UPDATE data
-                            SET worked_time = '{"%.3f" % worked_time}'
-                            WHERE days = '{today}'
-                            """)
-                else:
-                    print('no row for today, creating one....')
-                    conn.execute(f"INSERT INTO data VALUES ('{today}', '{'%.3f' % worked_time}')")
-        else:
-            print('initiating START_TIME')
-            START_TIME = time
-
+def db_save(status, path, active):
+    if status == "work":
+        with setup_conn(path) as conn:
+            if  active:
+                conn.execute(f"INSERT INTO sessions VALUES (date('now'), time('now'), NULL)")
+            else:
+                conn.execute(f"""UPDATE sessions
+                                 SET stop = time('now')
+                                 WHERE stop IS NULL
+                                """)
 
 @contextmanager
 def setup_listener():
@@ -267,8 +243,6 @@ def check_actions(sock, status):
     action = data.decode("utf8")
     if action == "toggle":
         status.toggle()
-        if DATABASE_SUPPORT:
-            db_save(time.time(), status)
     elif action == "end":
         status.next_timer()
     elif action == "lock":
@@ -283,7 +257,7 @@ def check_actions(sock, status):
 def action_display(args):
     # TODO logging = print("Running display", args)
 
-    status = Status(args.worktime, args.breaktime)
+    status = Status(args.worktime, args.breaktime, args.saveto)
 
     # Listen on socket
     with setup_listener() as sock:
@@ -366,6 +340,10 @@ def parse_args():
                         type=int,
                         default=3 * 60,
                         help="Default break timer time in seconds")
+    parser.add_argument("--saveto",
+                        type=pathlib.Path,
+                        default=None,
+                        help="Path to database")
     parser.set_defaults(func=action_display)
 
     sub = parser.add_subparsers()
