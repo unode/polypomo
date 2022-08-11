@@ -15,7 +15,7 @@ import pathlib
 
 
 SOCKDIR = os.environ.get("XDG_RUNTIME_DIR", "/var/tmp")
-SOCKFILE = os.path.join(SOCKDIR, "polypomo.sock")
+SOCKFILE = os.path.join(SOCKDIR, "polypomoTest.sock")
 TOMATO = u"\U0001F345"  # Recommended font: Noto Emoji
 BREAK = u"\U0001F3D6"  # Recommended font: Noto Emoji
 PAUSE = u"\U000023F8"  # Recommended font: Siji
@@ -107,7 +107,7 @@ class Status:
     def toggle(self):
         self.active = not self.active
         if self.saveto:
-            db_save(self.status, self.saveto, self.active)
+            self.save()
 
     def toggle_lock(self):
         self.locked = not self.locked
@@ -137,6 +137,20 @@ class Status:
             self.status = "work"
             self.timer = Timer(self.worktime)
 
+    def save(self):
+        if self.status == "work":
+            with setup_conn(self.saveto) as conn:
+                if self.active:
+                    conn.execute("INSERT INTO sessions VALUES (date('now'), time('now'), NULL)")
+                else:
+                    conn.execute("""UPDATE sessions
+                                     SET stop = time('now')
+                                     WHERE start IN (
+                                         SELECT start FROM sessions
+                                         ORDER BY start DESC
+                                         LIMIT 1)
+                                    """)
+
 
 @contextmanager
 def setup_conn(path):
@@ -154,16 +168,6 @@ def setup_conn(path):
         conn.commit()
         conn.close()
 
-def db_save(status, path, active):
-    if status == "work":
-        with setup_conn(path) as conn:
-            if  active:
-                conn.execute(f"INSERT INTO sessions VALUES (date('now'), time('now'), NULL)")
-            else:
-                conn.execute(f"""UPDATE sessions
-                                 SET stop = time('now')
-                                 WHERE stop IS NULL
-                                """)
 
 @contextmanager
 def setup_listener():
