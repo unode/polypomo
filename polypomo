@@ -10,6 +10,8 @@ import time
 import select
 from contextlib import contextmanager
 from subprocess import call, DEVNULL
+import sqlite3
+import pathlib
 
 
 SOCKDIR = os.environ.get("XDG_RUNTIME_DIR", "/var/tmp")
@@ -86,13 +88,14 @@ class Timer:
 
 
 class Status:
-    def __init__(self, worktime, breaktime):
+    def __init__(self, worktime, breaktime, saveto):
         self.worktime = worktime
         self.breaktime = breaktime
         self.status = "work"  # or "break"
         self.timer = Timer(self.worktime)
         self.active = False
         self.locked = True
+        self.saveto = saveto
 
     def show(self):
         status = TOMATO if self.status == "work" else BREAK
@@ -103,6 +106,8 @@ class Status:
 
     def toggle(self):
         self.active = not self.active
+        if self.saveto and self.status == "work":
+            self.save()
 
     def toggle_lock(self):
         self.locked = not self.locked
@@ -131,6 +136,36 @@ class Status:
         elif self.status == "break":
             self.status = "work"
             self.timer = Timer(self.worktime)
+
+    def save(self):
+        with setup_conn(self.saveto) as conn:
+            if self.active:
+                conn.execute("INSERT INTO sessions VALUES (date('now'), time('now'), NULL)")
+            else:
+                conn.execute("""UPDATE sessions
+                                 SET stop = time('now')
+                                 WHERE start IN (
+                                     SELECT start FROM sessions
+                                     ORDER BY start DESC
+                                     LIMIT 1)
+                                """)
+
+
+@contextmanager
+def setup_conn(path):
+    # check if the database exist
+    conn = sqlite3.connect(path)
+    cur = conn.cursor()
+    cur.execute("""CREATE TABLE IF NOT EXISTS sessions (
+                        date text,
+                        start text,
+                        stop text
+        )""")
+    try:
+        yield cur
+    finally:
+        conn.commit()
+        conn.close()
 
 
 @contextmanager
@@ -225,7 +260,7 @@ def check_actions(sock, status):
 def action_display(args):
     # TODO logging = print("Running display", args)
 
-    status = Status(args.worktime, args.breaktime)
+    status = Status(args.worktime, args.breaktime, args.saveto)
 
     # Listen on socket
     with setup_listener() as sock:
@@ -308,6 +343,10 @@ def parse_args():
                         type=int,
                         default=3 * 60,
                         help="Default break timer time in seconds")
+    parser.add_argument("--saveto",
+                        type=pathlib.Path,
+                        default=None,
+                        help="Path to database")
     parser.set_defaults(func=action_display)
 
     sub = parser.add_subparsers()
