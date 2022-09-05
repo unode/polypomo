@@ -139,12 +139,14 @@ class Status:
         self.timer.change(op, seconds)
 
     def next_timer(self):
-        self.active = False
-
         if self.status == "work":
+            if self.active:
+                self.active = False
+                self.save()  # save before switching if toggle didn't get called
             self.status = "break"
             self.timer = Timer(self.breaktime)
         elif self.status == "break":
+            self.active = False
             self.status = "work"
             self.timer = Timer(self.worktime)
 
