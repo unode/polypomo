@@ -64,3 +64,25 @@ polypomo makes use of `notify-send` to send a notification when the timer reache
 ## License
 
 polypomo is licensed under the [MIT](https://github.com/unode/polypomo/blob/master/LICENSE) license
+
+## Troubleshooting
+
+If you are finding that polypomo doesn't start or error messages are visible in polybar, try the following:
+
+1. Remove polypomo from polybar's configuration
+2. Ensure no polypomo process is active on your system
+3. Open two terminals/consoles and navigate to the polypomo repository
+4. On the first terminal run `./polypomo`. You should see some output appearing.
+5. On the second terminal issue one of the polypomo commands listed above. For instance `./polypomo toggle`. The output in terminal one should change accordingly.
+
+If an error appears in either case, please submit a bug report with the full output and the steps to reproduce the problem.
+
+To stop polypomo on the first terminal run `./polypomo exit` in the second terminal or simply hit `Ctrl + C` to abort the process.
+
+### Received exit request...
+
+If this message appears repeatedly in polybar, you may be running multiple instances of polypomo simultaneously and they are forcing each other to exit.
+Reconfigure polybar to run only one polypomo instance or see the [Limitations](#limitations) section above for possible workarounds.
+
+Alternatively, stop polybar and run the above troubleshooting steps.
+If manually running polypomo with the two terminal setup works, review your polybar configuration to ensure only one instance of polypomo is launched.
