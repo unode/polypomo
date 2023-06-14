@@ -142,7 +142,8 @@ class Status:
         if self.status == "work":
             if self.active:
                 self.active = False
-                self.save()  # save before switching if toggle didn't get called
+                if self.saveto:
+                    self.save()  # save before switching if toggle didn't get called
             self.status = "break"
             self.timer = Timer(self.breaktime)
         elif self.status == "break":
