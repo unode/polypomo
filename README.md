@@ -45,7 +45,7 @@ Running multiple polypomo instances is not a supported configuration [but some w
 
 In order to display the icons as shown in the screenshots below,
 you need to configure a font that includes the Unicode glyphs U+1F345 (🍅) and U+1F3D6 (🏖).
-The example above uses the font [Noto Emoji](https://www.google.com/get/noto/help/emoji/).
+The example above uses the font [Noto Emoji](https://fonts.google.com/noto/specimen/Noto+Emoji) from the [Noto](https://www.google.com/get/noto/help/emoji/) family of fonts.
 
 ### About pomodoro technique
 
